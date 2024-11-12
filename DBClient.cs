@@ -4,6 +4,7 @@ using System.Text;
 using System.Data.SqlClient;
 using static System.Net.Mime.MediaTypeNames;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Xml.Linq;
 
 namespace HotelDBConnection
 {
@@ -28,7 +29,7 @@ namespace HotelDBConnection
             int MaxHotel_No = 0;
 
             //Is there any rows in the query
-            if  (reader.Read())
+            if (reader.Read())
             {
                 //Yes, get max hotel_no
                 MaxHotel_No = reader.GetInt32(0); //Reading int fro 1st column
@@ -36,7 +37,7 @@ namespace HotelDBConnection
 
             //Close reader
             reader.Close();
-            
+
             Console.WriteLine($"Max hotel#: {MaxHotel_No}");
             Console.WriteLine();
 
@@ -94,10 +95,10 @@ namespace HotelDBConnection
 
             //Apply SQL command
             SqlCommand command = new SqlCommand(insertCommandString, connection);
-            
+
             Console.WriteLine($"Creating hotel #{hotel.Hotel_No}");
             int numberOfRowsAffected = command.ExecuteNonQuery();
-            
+
             Console.WriteLine($"Number of rows affected: {numberOfRowsAffected}");
             Console.WriteLine();
 
@@ -125,7 +126,7 @@ namespace HotelDBConnection
                 //End here
                 Console.WriteLine("No hotels in database");
                 reader.Close();
-                
+
                 //Return null for 'no hotels found'
                 return null;
             }
@@ -182,7 +183,7 @@ namespace HotelDBConnection
             }
 
             //Fetch hotel object from teh database
-            Hotel hotel = null; 
+            Hotel hotel = null;
             if (reader.Read())
             {
                 hotel = new Hotel()
@@ -201,6 +202,170 @@ namespace HotelDBConnection
 
             //Return found hotel
             return hotel;
+        }
+        //------------------------------------------------------------------------------
+        //------------------------------Facility----------------------------------------
+        //------------------------------------------------------------------------------
+
+        private int GetMaxFacilityNo(SqlConnection connection)
+        {
+            Console.WriteLine("Calling -> GetMaxFacilityId");
+
+
+            string queryStringMaxFacilityId = "SELECT  MAX(Facility_id)  FROM DemoFacility";
+            Console.WriteLine($"SQL applied: {queryStringMaxFacilityId}");
+
+
+            SqlCommand command = new SqlCommand(queryStringMaxFacilityId, connection);
+            SqlDataReader reader = command.ExecuteReader();
+
+
+            int MaxFacilityId = 0;
+
+            if (reader.Read())
+            {
+                MaxFacilityId = reader.GetInt32(0); 
+            }
+
+            reader.Close();
+
+            Console.WriteLine($"Max facility#: {MaxFacilityId}");
+            Console.WriteLine();
+
+            return MaxFacilityId;
+        }
+
+        private int DeleteFacility(SqlConnection connection, int facility_id)
+        {
+            Console.WriteLine("Calling -> DeleteFacility");
+
+            string deleteCommandString = $"DELETE FROM DemoFacility  WHERE Facility_id = {facility_id}";
+            Console.WriteLine($"SQL applied: {deleteCommandString}");
+
+            SqlCommand command = new SqlCommand(deleteCommandString, connection);
+            Console.WriteLine($"Deleting facility #{facility_id}");
+            int numberOfRowsAffected = command.ExecuteNonQuery();
+
+            Console.WriteLine($"Number of rows affected: {numberOfRowsAffected}");
+            Console.WriteLine();
+
+            return numberOfRowsAffected;
+        }
+
+        private int UpdateFacility(SqlConnection connection, Facility facility)
+        {
+            Console.WriteLine("Calling -> UpdateFacility");
+
+            string updateCommandString = $"UPDATE DemoFacility SET Name='{facility.Name}' WHERE Facility_id = {facility.Facility_id}";
+            Console.WriteLine($"SQL applied: {updateCommandString}");
+
+            SqlCommand command = new SqlCommand(updateCommandString, connection);
+            Console.WriteLine($"Updating facility #{facility.Facility_id}");
+            int numberOfRowsAffected = command.ExecuteNonQuery();
+
+            Console.WriteLine($"Number of rows affected: {numberOfRowsAffected}");
+            Console.WriteLine();
+
+            return numberOfRowsAffected;
+        }
+
+        private int InsertFacility(SqlConnection connection, Facility facility)
+        {
+            Console.WriteLine("Calling -> InsertFacility");
+
+            string insertCommandString = $"INSERT INTO DemoFacility VALUES({facility.Facility_id}, '{facility.Name}', {facility.Hotel_no})";
+            Console.WriteLine($"SQL applied: {insertCommandString}");
+
+            SqlCommand command = new SqlCommand(insertCommandString, connection);
+
+            Console.WriteLine($"Creating facility #{facility.Facility_id}");
+            int numberOfRowsAffected = command.ExecuteNonQuery();
+
+            Console.WriteLine($"Number of rows affected: {numberOfRowsAffected}");
+            Console.WriteLine();
+
+            return numberOfRowsAffected;
+        }
+
+        private List<Facility> ListAllFacilities(SqlConnection connection)
+        {
+            Console.WriteLine("Calling -> ListAllFacilities");
+
+            string queryStringAllFacilities = "SELECT * FROM DemoFacility";
+            Console.WriteLine($"SQL applied: {queryStringAllFacilities}");
+
+            SqlCommand command = new SqlCommand(queryStringAllFacilities, connection);
+            SqlDataReader reader = command.ExecuteReader();
+
+            Console.WriteLine("Listing all facilities:");
+
+            if (!reader.HasRows)
+            {
+                Console.WriteLine("No facilities in database");
+                reader.Close();
+
+                return null;
+            }
+
+            List<Facility> facilities = new List<Facility>();
+            while (reader.Read())
+            {
+                Facility nextFacility = new Facility()
+                {
+                    Facility_id = reader.GetInt32(0), 
+                    Name = reader.GetString(1),  
+                    Hotel_no = reader.GetInt32(2),
+                };
+
+                facilities.Add(nextFacility);
+
+                Console.WriteLine(nextFacility);
+            }
+
+            reader.Close();
+            Console.WriteLine();
+
+            return facilities;
+        }
+
+        private Facility GetFacility(SqlConnection connection, int facility_id)
+        {
+            Console.WriteLine("Calling -> GetFacility");
+
+            string queryStringOneHotel = $"SELECT * FROM DemoFacility WHERE facility_id = {facility_id}";
+            Console.WriteLine($"SQL applied: {queryStringOneHotel}");
+
+            SqlCommand command = new SqlCommand(queryStringOneHotel, connection);
+            SqlDataReader reader = command.ExecuteReader();
+
+            Console.WriteLine($"Finding facility#: {facility_id}");
+
+            if (!reader.HasRows)
+            {
+                Console.WriteLine("No facilities in database");
+                reader.Close();
+
+                return null;
+            }
+
+            Facility facility = null;
+            if (reader.Read())
+            {
+                
+                facility = new Facility()
+                {
+                    Facility_id = reader.GetInt32(0), 
+                    Name = reader.GetString(1),
+                    Hotel_no = reader.GetInt32(2)
+                };
+                GetHotel(connection, facility.Hotel_no);
+                Console.WriteLine(facility);
+            }
+
+            reader.Close();
+            Console.WriteLine();
+
+            return facility;
         }
         public void Start()
         {
@@ -249,6 +414,35 @@ namespace HotelDBConnection
 
                 //List all hotels - now without the deleted one
                 ListAllHotels(connection);
+
+                //--------------------Facilities-------------------------
+
+                ListAllFacilities(connection);
+
+                Facility newFacility = new Facility()
+                {
+                    Facility_id = GetMaxFacilityNo(connection) + 1,
+                    Name = "New Facility",
+                    Hotel_no = 2
+                };
+
+                InsertFacility(connection, newFacility);
+
+                ListAllFacilities(connection);
+
+                Facility facilityToBeUpdated = GetFacility(connection, newFacility.Facility_id);
+
+                facilityToBeUpdated.Name += "(updated)";
+
+                UpdateFacility(connection, facilityToBeUpdated);
+
+                ListAllFacilities(connection);
+
+                Facility facilityToBeDeleted = GetFacility(connection, facilityToBeUpdated.Facility_id);
+
+                DeleteFacility(connection, facilityToBeDeleted.Facility_id);
+
+                ListAllFacilities(connection);
             }
         }
     }
