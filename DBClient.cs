@@ -207,6 +207,20 @@ namespace HotelDBConnection
         //------------------------------Facility----------------------------------------
         //------------------------------------------------------------------------------
 
+        private void GetHotelWithFacilities(SqlConnection connection, int hotel_no) // Viser liste af faciliteter på specifikt hotel
+        {
+            Hotel hotel = GetHotel(connection, hotel_no);
+
+            if (hotel == null)
+            {
+                Console.WriteLine("Hotel not found.");
+                return;
+            }
+
+            Console.WriteLine($"Facilities for {hotel.Name}:");
+
+            List<Facility> facilities = ListAllFacilitiesFromHotel(connection, hotel_no);
+        }
         private int GetMaxFacilityNo(SqlConnection connection)
         {
             Console.WriteLine("Calling -> GetMaxFacilityId");
@@ -314,6 +328,45 @@ namespace HotelDBConnection
                 {
                     Facility_id = reader.GetInt32(0), 
                     Name = reader.GetString(1),  
+                    Hotel_no = reader.GetInt32(2),
+                };
+
+                facilities.Add(nextFacility);
+
+                Console.WriteLine(nextFacility);
+            }
+
+            reader.Close();
+            Console.WriteLine();
+
+            return facilities;
+        }
+
+        private List<Facility> ListAllFacilitiesFromHotel(SqlConnection connection, int hotel_no)
+        {
+            Console.WriteLine("Calling -> ListAllFacilitiesFromHotel");
+
+            string queryStringAllFacilitiesFromHotel = $"SELECT * FROM DemoFacility WHERE Hotel_no ={hotel_no}";
+            Console.WriteLine($"SQL applied: {queryStringAllFacilitiesFromHotel}");
+
+            SqlCommand command = new SqlCommand(queryStringAllFacilitiesFromHotel, connection);
+            SqlDataReader reader = command.ExecuteReader();
+
+            if (!reader.HasRows)
+            {
+                Console.WriteLine("No facilities in database");
+                reader.Close();
+
+                return null;
+            }
+
+            List<Facility> facilities = new List<Facility>();
+            while (reader.Read())
+            {
+                Facility nextFacility = new Facility()
+                {
+                    Facility_id = reader.GetInt32(0),
+                    Name = reader.GetString(1),
                     Hotel_no = reader.GetInt32(2),
                 };
 
@@ -442,6 +495,8 @@ namespace HotelDBConnection
                 DeleteFacility(connection, facilityToBeDeleted.Facility_id);
 
                 ListAllFacilities(connection);
+
+                GetHotelWithFacilities(connection, 1);
             }
         }
     }
