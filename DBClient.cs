@@ -358,7 +358,6 @@ namespace HotelDBConnection
                     Name = reader.GetString(1),
                     Hotel_no = reader.GetInt32(2)
                 };
-                GetHotel(connection, facility.Hotel_no);
                 Console.WriteLine(facility);
             }
 
