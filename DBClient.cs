@@ -209,6 +209,7 @@ namespace HotelDBConnection
 
         private void GetHotelWithFacilities(SqlConnection connection, int hotel_no) // Viser liste af faciliteter på specifikt hotel
         {
+            Console.WriteLine("Calling -> GetHotelWithFacilities");
             Hotel hotel = GetHotel(connection, hotel_no);
 
             if (hotel == null)
